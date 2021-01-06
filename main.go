@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/labstack/echo/v4"
 	"github.com/naysudes/technopark-db-forum/database"
+	"github.com/sirupsen/logrus"
 )
 
 type CustomValidator struct {
@@ -29,6 +30,7 @@ func main() {
 	})
 	if err != nil {
 		logrus.Fatal(err)
+		return
 	}
 
 	if err = database.InitDB(dbConn); err != nil {
