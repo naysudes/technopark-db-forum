@@ -14,13 +14,11 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db *pgx.ConnPool) user.Repository {
-	return &UserRepository{
-		db: db,
-	}
+	return &UserRepository{ db: db }
 }
 
 func (ur *UserRepository) InsertInto(user *models.User) error {
-	if _, err := ur.db.Exec("INSERT INTO users (nickname, email, fullname, about) "+
+	if _, err := ur.db.Exec("INSERT INTO users (nickname, email, fullname, about) " +
 		"VALUES ($1, $2, $3, $4)", user.Nickname, user.Email, user.Fullname, user.About); err != nil {
 		return err
 	}
@@ -31,7 +29,7 @@ func (ur *UserRepository) InsertInto(user *models.User) error {
 func (ur *UserRepository) GetByNickname(nickname string) (*models.User, error) {
 	u := &models.User{}
 
-	if err := ur.db.QueryRow("SELECT id, nickname, email, fullname, about FROM users "+
+	if err := ur.db.QueryRow("SELECT id, nickname, email, fullname, about FROM users " +
 		"WHERE lower(nickname) = lower($1)", nickname).Scan(&u.ID, &u.Nickname, &u.Email, &u.Fullname,
 		&u.About); err != nil {
 		if err == pgx.ErrNoRows {
@@ -46,7 +44,7 @@ func (ur *UserRepository) GetByNickname(nickname string) (*models.User, error) {
 func (ur *UserRepository) GetByEmail(email string) (*models.User, error) {
 	u := &models.User{}
 
-	if err := ur.db.QueryRow("SELECT id, nickname, email, fullname, about FROM users "+
+	if err := ur.db.QueryRow("SELECT id, nickname, email, fullname, about FROM users " +
 		"WHERE lower(email) = lower($1)", email).Scan(&u.ID, &u.Nickname, &u.Email, &u.Fullname,
 		&u.About); err != nil {
 		if err == pgx.ErrNoRows {

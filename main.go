@@ -41,12 +41,12 @@ func main() {
 		return
 	}
 
-	e := echo.New()
-	e.Validator = &CustomValidator{validator: validator.New()}
+	server := echo.New()
+	server.Validator = &CustomValidator{validator: validator.New()}
 
 	ur := user_repository.NewUserRepository(dbConn)
 	uUC := user_usecase.NewUserUsecase(ur)
-	_ = user_delivery.NewUserHandler(e, uUC)
+	_ = user_delivery.NewUserHandler(server, uUC)
 
-	e.Start(":5000")
+	server.Start(":5000")
 }
