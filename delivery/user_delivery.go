@@ -1,4 +1,4 @@
-package user_delivery
+package delivery
 
 import (
 	"fmt"
