@@ -42,6 +42,7 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Validator = &CustomValidator{validator: validator.New()}
 
 	ur := user_repository.NewUserRepository(dbConn)
 	uUC := user_usecase.NewUserUsecase(ur)

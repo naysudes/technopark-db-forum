@@ -96,10 +96,6 @@ func (ur *UserRepository) GetUsersByForum(
 		rows, err = ur.db.Query(queryString+groupbyString, id)
 	}
 	if err != nil {
-		//if err == sql.ErrNoRows {
-		//	return nil, nil
-		//}
-
 		return nil, err
 	}
 
