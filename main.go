@@ -7,9 +7,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/naysudes/technopark-db-forum/database"
 	"github.com/sirupsen/logrus"
-	user_delivery "github.com/naysudes/technopark-db-forum/delivery/delivery"
-	user_repository "github.com/naysudes/technopark-db-forum/repository/repository"
-	user_usecase "github.com/naysudes/technopark-db-forum/usecase/usecase"
+	user_delivery "github.com/naysudes/technopark-db-forum/delivery/user_delivery"
+	user_repository "github.com/naysudes/technopark-db-forum/repository/user_repository"
+	user_usecase "github.com/naysudes/technopark-db-forum/usecase/user_usecase"
 )
 
 type CustomValidator struct {

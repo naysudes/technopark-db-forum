@@ -1,4 +1,4 @@
-package usecase
+package user_usecase
 
 import (
 	"github.com/naysudes/technopark-db-forum/models"
