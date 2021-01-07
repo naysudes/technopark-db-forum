@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	user_delivery "github.com/naysudes/technopark-db-forum/delivery"
 	user_repository "github.com/naysudes/technopark-db-forum/repository"
-	user_usecase "github.com/naysudes/technopark-db-forum/usecase/"
+	user_usecase "github.com/naysudes/technopark-db-forum/usecase"
 )
 
 type CustomValidator struct {
@@ -44,13 +44,7 @@ func main() {
 	e := echo.New()
 
 	ur := user_repository.NewUserRepository(dbConn)
-
 	uUC := user_usecase.NewUserUsecase(ur)
-	fUC := forum_usecase.NewForumUsecase(fr, ur, pr, tr)
-	tUC := thread_usecase.NewThreadUsecase(tr, ur, fr, pr, vr)
-	sUC := service_usecase.NewServiceUsecase(sr)
-	pUC := post_usecase.NewPostUsecase(pr, fr, vr, tr, ur)
-
 	_ = user_delivery.NewUserHandler(e, uUC)
 
 	e.Start(":5000")
