@@ -7,9 +7,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/naysudes/technopark-db-forum/database"
 	"github.com/sirupsen/logrus"
-	user_delivery "github.com/naysudes/technopark-db-forum/delivery"
-	user_repository "github.com/naysudes/technopark-db-forum/repository"
-	user_usecase "github.com/naysudes/technopark-db-forum/usecase"
+	delivery "github.com/naysudes/technopark-db-forum/delivery"
+	repository "github.com/naysudes/technopark-db-forum/repository"
+	usecase "github.com/naysudes/technopark-db-forum/usecase"
 )
 
 type CustomValidator struct {
@@ -44,9 +44,13 @@ func main() {
 	server := echo.New()
 	server.Validator = &CustomValidator{validator: validator.New()}
 
-	ur := user_repository.NewUserRepository(dbConn)
-	uUC := user_usecase.NewUserUsecase(ur)
-	_ = user_delivery.NewUserHandler(server, uUC)
+	ur := repository.NewUserRepository(dbConn)
+	uUC := usecase.NewUserUsecase(ur)
+	_ = delivery.NewUserHandler(server, uUC)
+
+	fr := repository.NewForumRepository(dbConn)
+	uUC := usecase.NewForumUsecase(ur)
+	_ = delivery.NewForumHandler(server, uUC)
 
 	server.Start(":5000")
 }
