@@ -8,7 +8,6 @@ import (
 	"github.com/naysudes/technopark-db-forum/forum"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type ForumHandler struct {
@@ -16,16 +15,11 @@ type ForumHandler struct {
 	threadUC thread.Usecase
 }
 
-func NewForumHandler(e *echo.Echo, fUC forum.Usecase, tUC thread.Usecase) *ForumHandler {
-	fh := &ForumHandler{
-		forumUC:  fUC,
-		threadUC: tUC,
-	}
+func NewForumHandler(e *echo.Echo, fUC forum.Usecase) *ForumHandler {
+	fh := &ForumHandler{ forumUC:  fUC }
 
 	e.POST("/api/forum/create", fh.CreateForum())
-	e.POST("/api/forum/:fslug/create", fh.CreateThread())
 	e.GET("/api/forum/:slug/details", fh.GetForumDetails())
-	e.GET("/api/forum/:slug/threads", fh.GetForumThreads())
 	e.GET("/api/forum/:slug/users", fh.GetForumUsers())
 
 	return fh
@@ -72,68 +66,6 @@ func (fh *ForumHandler) CreateForum() echo.HandlerFunc {
 	}
 }
 
-func (fh *ForumHandler) CreateThread() echo.HandlerFunc {
-	type CreateThreadRequest struct {
-		Author  string    `json:"author" binding:"require"`
-		Created time.Time `json:"created" binding:"omitempty"`
-		Message string    `json:"message" binding:"require"`
-		Title   string    `json:"title" binding:"require"`
-		Slug    string    `json:"slug" binding:"omitempty"`
-	}
-	return func(c echo.Context) error {
-		req := &CreateThreadRequest{}
-		if err := c.Bind(req); err != nil {
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
-				Message: err.Error(),
-			})
-		}
-
-		if _, err := strconv.ParseInt(req.Slug, 10, 64); err == nil {
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
-				Message: tools.ErrIncorrectSlug.Error(),
-			})
-		}
-
-		slug := c.Param("fslug")
-
-		if req.Created.IsZero() {
-			req.Created = time.Now()
-		}
-
-		reqThread := &models.Thread{
-			Author:       req.Author,
-			CreationDate: req.Created,
-			About:        req.Message,
-			Title:        req.Title,
-			Slug:         req.Slug,
-			Forum:        slug,
-		}
-
-		returnThread, err := fh.threadUC.AddThread(reqThread)
-		if err != nil {
-			if err == tools.ErrForumDoesntExists {
-				return c.JSON(http.StatusNotFound, tools.ErrorResponce{
-					Message: err.Error(),
-				})
-			}
-			if err == tools.ErrUserDoesntExists {
-				return c.JSON(http.StatusNotFound, tools.ErrorResponce{
-					Message: err.Error(),
-				})
-			}
-			if err == tools.ErrExistWithSlug {
-				return c.JSON(http.StatusConflict, returnThread)
-			}
-
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(http.StatusCreated, returnThread)
-	}
-}
-
 func (fh *ForumHandler) GetForumDetails() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		slug := c.Param("slug")
@@ -152,44 +84,6 @@ func (fh *ForumHandler) GetForumDetails() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, returnForum)
-	}
-}
-
-func (fh *ForumHandler) GetForumThreads() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		slug := c.Param("slug")
-		limit := uint64(0)
-		var err error
-
-		if l := c.QueryParam("limit"); l != "" {
-			limit, err = strconv.ParseUint(l, 10, 64)
-			if err != nil {
-				return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
-					Message: err.Error(),
-				})
-			}
-		}
-		since := c.QueryParam("since")
-
-		desc := false
-		if descVal := c.QueryParam("desc"); descVal == "true" {
-			desc = true
-		}
-
-		returnThreads, err := fh.forumUC.GetForumThreads(slug, limit, since, desc)
-		if err != nil {
-			if err == tools.ErrForumDoesntExists {
-				return c.JSON(http.StatusNotFound, tools.ErrorResponce{
-					Message: err.Error(),
-				})
-			}
-
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
-				Message: err.Error(),
-			})
-		}
-
-		return c.JSON(http.StatusOK, returnThreads)
 	}
 }
 

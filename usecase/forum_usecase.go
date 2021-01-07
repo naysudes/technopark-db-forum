@@ -3,7 +3,6 @@ package usecase
 import (
 	"github.com/naysudes/technopark-db-forum/forum"
 	"github.com/naysudes/technopark-db-forum/models"
-	"github.com/naysudes/technopark-db-forum/post"
 	"github.com/naysudes/technopark-db-forum/thread"
 	"github.com/naysudes/technopark-db-forum/tools"
 	"github.com/naysudes/technopark-db-forum/user"
@@ -11,16 +10,13 @@ import (
 
 type ForumUsecase struct {
 	forumRepo  forum.Repository
-	postRepo   post.Repository
 	threadRepo thread.Repository
 	userRepo   user.Repository
 }
 
-func NewForumUsecase(fr forum.Repository, ur user.Repository, pr post.Repository, tr thread.Repository) forum.Usecase {
+func NewForumUsecase(fr forum.Repository, ur user.Repository) forum.Usecase {
 	return &ForumUsecase{
 		forumRepo:  fr,
-		postRepo:   pr,
-		threadRepo: tr,
 		userRepo:   ur,
 	}
 }
@@ -72,7 +68,6 @@ func (fu *ForumUsecase) GetForumThreads(
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrForumDoesntExists
 		}
-
 		return nil, err
 	}
 

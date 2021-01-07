@@ -49,8 +49,8 @@ func main() {
 	_ = delivery.NewUserHandler(server, uUC)
 
 	fr := repository.NewForumRepository(dbConn)
-	uUC := usecase.NewForumUsecase(ur)
-	_ = delivery.NewForumHandler(server, uUC)
+	fUC := usecase.NewForumUsecase(fr, ur)
+	_ = delivery.NewForumHandler(server, fUC)
 
 	server.Start(":5000")
 }
