@@ -57,8 +57,7 @@ func (usecase ForumUsecase) GetBySlug(slug string) (*models.Forum, error) {
 	return forumBySlug, nil
 }
 
-func (usecase ForumUsecase) GetThreads(
-	slug string, limit uint64, since string, desc bool) ([]*models.Thread, error) {
+func (usecase ForumUsecase) GetThreadsByForum( slug string, limit uint64, since string, desc bool) ([]*models.Thread, error) {
 	if _, err := usecase.forumRepo.GetBySlug(slug); err != nil {
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrForumDoesntExists

@@ -52,3 +52,13 @@ func (tr ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
 func (tr ThreadRepository) GetByForumSlug(string, uint64, string, bool) ([]*models.Thread, error) {
 	return nil, nil
 }
+
+func (tr ThreadRepository) InsertThread(t *models.Thread) error {
+	if err := tr.db.QueryRow("INSERT INTO threads (slug, author, title, message, forum, created) " +
+		"VALUES (NULLIF ($1, ''), $2, $3, $4, $5, $6) RETURNING id",
+		t.Slug, t.AuthorID, t.Title, t.About, t.ForumID, t.CreationDate).
+		Scan(&t.ID); err != nil {
+		return err
+	}
+	return nil
+}

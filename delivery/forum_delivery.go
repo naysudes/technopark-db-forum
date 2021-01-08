@@ -23,6 +23,7 @@ func NewForumHandler(e *echo.Echo, thUC thread.Usecase, fUC forum.Usecase) Forum
 	e.GET("/api/forum/:slug/details", handler.GetForumDetails())
 	e.GET("/api/forum/:slug/users", handler.GetUsers())
 	e.POST("/api/forum/:forumslug/create", handler.CreateThread())
+	e.GET("/api/forum/:slug/threads", handler.GetThreads())
 
 	return handler
 }
@@ -181,5 +182,42 @@ func (handler ForumHandler) CreateThread() echo.HandlerFunc {
 			})
 		}
 		return contex.JSON(http.StatusCreated, newThread)
+	}
+}
+
+func (handler ForumHandler) GetThreads() echo.HandlerFunc {
+	return func(contex echo.Context) error {
+		slug := contex.Param("slug")
+
+		limit := uint64(0)
+		var err error
+		if l := contex.QueryParam("limit"); l != "" {
+			limit, err = strconv.ParseUint(l, 10, 64)
+			if err != nil {
+				return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+		}
+		since := contex.QueryParam("since")
+
+		desc := false
+		if descVal := contex.QueryParam("desc"); descVal == "true" {
+			desc = true
+		}
+		threadsByForum, err := handler.forumUseCase.GetThreadsByForum(slug, limit, since, desc)
+		if err != nil {
+			if err == tools.ErrForumDoesntExists {
+				return contex.JSON(http.StatusNotFound, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{
+				Message: err.Error(),
+			})
+		}
+
+		return contex.JSON(http.StatusOK, threadsByForum)
 	}
 }

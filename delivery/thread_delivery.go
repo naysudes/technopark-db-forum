@@ -9,7 +9,7 @@ import (
 	"github.com/naysudes/technopark-db-forum/interfaces/thread"
 	"net/http"
 	// "strconv"
-	// "encoding/json"
+	"encoding/json"
 )
 
 type ThreadDelivery struct {
@@ -35,16 +35,16 @@ func (th ThreadDelivery) CreatePosts() echo.HandlerFunc {
 	}
   	return func(contex echo.Context) error {
 		req := []createReq{}
-		if err := json.NewDecoder(c.Request().Body).Decode(&req); err != nil {
+		if err := json.NewDecoder(contex.Request().Body).Decode(&req); err != nil {
 			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{
 				Message: err.Error(),
 			})
 		}
 		slugOrID := contex.Param("slug_or_id")
 
-		posts := make([]models.Post, 0, len(req))
+		posts := make([]*models.Post, 0, len(req))
 		for _, r := range req {
-			post := models.Post{
+			post := &models.Post{
 				Author:   r.Author,
 				Message:  r.Message,
 				ParentID: r.Parent,
