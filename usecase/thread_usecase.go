@@ -60,7 +60,7 @@ func (tUC ThreadUsecase) CreatePosts(slugOrID string, posts []*models.Post) ([]*
 		p.Forum = t.Forum
 		p.ForumID = t.ForumID
 	}
-	if err = tUC.postRepo.InsertInto(posts); err != nil {
+	if err = tUC.postRepo.Insert(posts); err != nil {
 		return nil, err
 	}
 
