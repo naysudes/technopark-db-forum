@@ -5,10 +5,10 @@ import (
 )
 
 type Repository interface {
-	InsertInto(*models.Thread) error
+	// InsertInto(*models.Thread) error
 	GetByID(uint64) (*models.Thread, error)
 	GetBySlug(string) (*models.Thread, error)
 	GetByForumSlug(string, uint64, string, bool) ([]*models.Thread, error)
-	GetCountByForumID(uint64) (uint64, error)
-	Update(*models.Thread) error
+	// GetCountByForumID(uint64) (uint64, error)
+	// Update(*models.Thread) error
 }

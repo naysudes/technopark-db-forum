@@ -15,13 +15,13 @@ type ForumUsecase struct {
 }
 
 func NewForumUsecase(forumRepo forum.Repository, userRepo user.Repository) forum.Usecase {
-	return &ForumUsecase{
+	return ForumUsecase{
 		forumRepo:  forumRepo,
 		userRepo:   userRepo,
 	}
 }
 
-func (usecase *ForumUsecase) Add(forum *models.Forum) (*models.Forum, error) {
+func (usecase ForumUsecase) Add(forum *models.Forum) (*models.Forum, error) {
 	returnForum, err := usecase.forumRepo.GetBySlug(forum.Slug)
 	if err != nil && err != tools.ErrDoesntExists {
 		return nil, err
@@ -46,7 +46,7 @@ func (usecase *ForumUsecase) Add(forum *models.Forum) (*models.Forum, error) {
 	return forum, nil
 }
 
-func (usecase *ForumUsecase) GetBySlug(slug string) (*models.Forum, error) {
+func (usecase ForumUsecase) GetBySlug(slug string) (*models.Forum, error) {
 	forumBySlug, err := usecase.forumRepo.GetBySlug(slug)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
@@ -57,7 +57,7 @@ func (usecase *ForumUsecase) GetBySlug(slug string) (*models.Forum, error) {
 	return forumBySlug, nil
 }
 
-func (usecase *ForumUsecase) GetThreads(
+func (usecase ForumUsecase) GetThreads(
 	slug string, limit uint64, since string, desc bool) ([]*models.Thread, error) {
 	if _, err := usecase.forumRepo.GetBySlug(slug); err != nil {
 		if err == tools.ErrDoesntExists {
@@ -72,7 +72,7 @@ func (usecase *ForumUsecase) GetThreads(
 	return threadsByForum, nil
 }
 
-func (usecase *ForumUsecase) GetUsers(
+func (usecase ForumUsecase) GetUsers(
 	slug string, limit uint64, since string, desc bool) ([]*models.User, error) {
 	f, err := usecase.forumRepo.GetBySlug(slug)
 	if err != nil {

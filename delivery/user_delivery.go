@@ -13,8 +13,8 @@ type UserHandler struct {
 	userUsecase user.Usecase
 }
 
-func NewUserHandler(e *echo.Echo, userCase user.Usecase) *UserHandler {
-	handler := &UserHandler{
+func NewUserHandler(e *echo.Echo, userCase user.Usecase) UserHandler {
+	handler := UserHandler{
 		userUsecase: userCase,
 	}
 	e.POST("/api/user/:nickname/create", handler.CreateUser())
@@ -23,7 +23,7 @@ func NewUserHandler(e *echo.Echo, userCase user.Usecase) *UserHandler {
 	return handler
 }
 
-func (handler *UserHandler) CreateUser() echo.HandlerFunc {
+func (handler UserHandler) CreateUser() echo.HandlerFunc {
 	type createUserRequset struct {
 		Email    string `json:"email" binding:"required" validate:"email"`
 		Fullname string `json:"fullname" binding:"required"`
@@ -60,7 +60,7 @@ func (handler *UserHandler) CreateUser() echo.HandlerFunc {
 	}
 }
 
-func (handler *UserHandler) GetProfile() echo.HandlerFunc {
+func (handler UserHandler) GetProfile() echo.HandlerFunc {
 	return func(contex echo.Context) error {
 		nickname := contex.Param("nickname")
 		returnUser, err := handler.userUsecase.GetByNickname(nickname)
@@ -75,7 +75,7 @@ func (handler *UserHandler) GetProfile() echo.HandlerFunc {
 	}
 }
 
-func (handler *UserHandler) UpdateProfile() echo.HandlerFunc {
+func (handler UserHandler) UpdateProfile() echo.HandlerFunc {
 	type updateUserRequset struct {
 		Email    string `json:"email" binding:"required"`
 		Fullname string `json:"fullname" binding:"required"`

@@ -15,8 +15,8 @@ type ForumHandler struct {
 	threadUseCase thread.Usecase
 }
 
-func NewForumHandler(e *echo.Echo, usecase forum.Usecase) *ForumHandler {
-	handler := &ForumHandler{ forumUseCase:  usecase }
+func NewForumHandler(e *echo.Echo, usecase forum.Usecase) ForumHandler {
+	handler := ForumHandler{ forumUseCase:  usecase }
 
 	e.POST("/api/forum/create", handler.CreateForum())
 	e.GET("/api/forum/:slug/details", handler.GetForumDetails())
@@ -25,7 +25,7 @@ func NewForumHandler(e *echo.Echo, usecase forum.Usecase) *ForumHandler {
 	return handler
 }
 
-func (handler *ForumHandler) CreateForum() echo.HandlerFunc {
+func (handler ForumHandler) CreateForum() echo.HandlerFunc {
 	type createForumRequest struct {
 		Slug  string `json:"slug" binding:"required"`
 		Title string `json:"title" binding:"required"`
@@ -66,7 +66,7 @@ func (handler *ForumHandler) CreateForum() echo.HandlerFunc {
 	}
 }
 
-func (handler *ForumHandler) GetForumDetails() echo.HandlerFunc {
+func (handler ForumHandler) GetForumDetails() echo.HandlerFunc {
 	return func(contex echo.Context) error {
 		slug := contex.Param("slug")
 
@@ -87,7 +87,7 @@ func (handler *ForumHandler) GetForumDetails() echo.HandlerFunc {
 	}
 }
 
-func (handler *ForumHandler) GetUsers() echo.HandlerFunc {
+func (handler ForumHandler) GetUsers() echo.HandlerFunc {
 	return func(contex echo.Context) error {
 		slug := contex.Param("slug")
 

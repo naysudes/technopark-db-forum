@@ -11,12 +11,12 @@ type UserUsecase struct {
 }
 
 func NewUserUsecase(repo user.Repository) user.Usecase {
-	return &UserUsecase{
+	return UserUsecase{
 		repo: repo,
 	}
 }
 
-func (usecase *UserUsecase) Add(nickname string, usr *models.User) ([]*models.User, error) {
+func (usecase UserUsecase) Add(nickname string, usr *models.User) ([]*models.User, error) {
 	usr1, err := usecase.repo.GetByNickname(nickname)
 	if err != nil && err != tools.ErrDoesntExists {
 		return nil, err
@@ -47,7 +47,7 @@ func (usecase *UserUsecase) Add(nickname string, usr *models.User) ([]*models.Us
 	return []*models.User{usr}, nil
 }
 
-func (usecase *UserUsecase) GetByNickname(nickname string) (*models.User, error) {
+func (usecase UserUsecase) GetByNickname(nickname string) (*models.User, error) {
 	u, err := usecase.repo.GetByNickname(nickname)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (usecase *UserUsecase) GetByNickname(nickname string) (*models.User, error)
 	return u, nil
 }
 
-func (usecase *UserUsecase) Update(nickname string, usr *models.User) error {
+func (usecase UserUsecase) Update(nickname string, usr *models.User) error {
 	u, err := usecase.repo.GetByNickname(nickname)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
