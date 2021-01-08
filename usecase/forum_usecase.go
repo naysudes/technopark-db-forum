@@ -1,11 +1,11 @@
 package usecase
 
 import (
-	"github.com/naysudes/technopark-db-forum/forum"
+	"github.com/naysudes/technopark-db-forum/interfaces/forum"
 	"github.com/naysudes/technopark-db-forum/models"
-	"github.com/naysudes/technopark-db-forum/thread"
+	"github.com/naysudes/technopark-db-forum/interfaces/thread"
 	"github.com/naysudes/technopark-db-forum/tools"
-	"github.com/naysudes/technopark-db-forum/user"
+	"github.com/naysudes/technopark-db-forum/interfaces/user"
 )
 
 type ForumUsecase struct {
@@ -14,24 +14,22 @@ type ForumUsecase struct {
 	userRepo   user.Repository
 }
 
-func NewForumUsecase(fr forum.Repository, ur user.Repository) forum.Usecase {
+func NewForumUsecase(forumRepo forum.Repository, userRepo user.Repository) forum.Usecase {
 	return &ForumUsecase{
-		forumRepo:  fr,
-		userRepo:   ur,
+		forumRepo:  forumRepo,
+		userRepo:   userRepo,
 	}
 }
 
-func (fu *ForumUsecase) AddForum(forum *models.Forum) (*models.Forum, error) {
-	returnForum, err := fu.forumRepo.GetBySlug(forum.Slug)
+func (usecase *ForumUsecase) Add(forum *models.Forum) (*models.Forum, error) {
+	returnForum, err := usecase.forumRepo.GetBySlug(forum.Slug)
 	if err != nil && err != tools.ErrDoesntExists {
 		return nil, err
 	}
-
 	if returnForum != nil {
 		return returnForum, tools.ErrExistWithSlug
 	}
-
-	u, err := fu.userRepo.GetByNickname(forum.AdminNickname)
+	usr, err := usecase.userRepo.GetByNickname(forum.AdminNickname)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrUserDoesntExists
@@ -39,59 +37,52 @@ func (fu *ForumUsecase) AddForum(forum *models.Forum) (*models.Forum, error) {
 
 		return nil, err
 	}
+	forum.AdminNickname = usr.Nickname
+	forum.AdminID = usr.ID
 
-	forum.AdminNickname = u.Nickname
-	forum.AdminID = u.ID
-
-	if err = fu.forumRepo.InsertInto(forum); err != nil {
+	if err = usecase.forumRepo.InsertInto(forum); err != nil {
 		return nil, err
 	}
-
 	return forum, nil
 }
 
-func (fu *ForumUsecase) GetForumBySlug(slug string) (*models.Forum, error) {
-	returnForum, err := fu.forumRepo.GetBySlug(slug)
+func (usecase *ForumUsecase) GetBySlug(slug string) (*models.Forum, error) {
+	forumBySlug, err := usecase.forumRepo.GetBySlug(slug)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrForumDoesntExists
 		}
 		return nil, err
 	}
-
-	return returnForum, nil
+	return forumBySlug, nil
 }
 
-func (fu *ForumUsecase) GetForumThreads(
+func (usecase *ForumUsecase) GetThreads(
 	slug string, limit uint64, since string, desc bool) ([]*models.Thread, error) {
-	if _, err := fu.forumRepo.GetBySlug(slug); err != nil {
+	if _, err := usecase.forumRepo.GetBySlug(slug); err != nil {
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrForumDoesntExists
 		}
 		return nil, err
 	}
-
-	returnThreads, err := fu.threadRepo.GetByForumSlug(slug, limit, since, desc)
+	threadsByForum, err := usecase.threadRepo.GetByForumSlug(slug, limit, since, desc)
 	if err != nil {
 		return nil, err
 	}
-
-	return returnThreads, nil
+	return threadsByForum, nil
 }
 
-func (fu *ForumUsecase) GetForumUsers(
+func (usecase *ForumUsecase) GetUsers(
 	slug string, limit uint64, since string, desc bool) ([]*models.User, error) {
-	f, err := fu.forumRepo.GetBySlug(slug)
+	f, err := usecase.forumRepo.GetBySlug(slug)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
 			return nil, tools.ErrForumDoesntExists
 		}
 	}
-
-	returnUsers, err := fu.userRepo.GetUsersByForum(f.ID, limit, since, desc)
+	usersByForum, err := usecase.userRepo.GetUsersByForum(f.ID, limit, since, desc)
 	if err != nil {
 		return nil, err
 	}
-
-	return returnUsers, nil
+	return usersByForum, nil
 }

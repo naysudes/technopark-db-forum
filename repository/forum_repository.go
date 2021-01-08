@@ -4,40 +4,37 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/naysudes/technopark-db-forum/models"
 	"github.com/naysudes/technopark-db-forum/tools"
-	"github.com/naysudes/technopark-db-forum/forum"
+	"github.com/naysudes/technopark-db-forum/interfaces/forum"
 )
 
 type ForumRepository struct {
-	db *pgx.ConnPool
+	database *pgx.ConnPool
 }
 
-func NewForumRepository(db *pgx.ConnPool) forum.Repository {
+func NewForumRepository(database *pgx.ConnPool) forum.Repository {
 	return &ForumRepository{
-		db: db,
+		database: database,
 	}
 }
 
-func (fr *ForumRepository) InsertInto(forum *models.Forum) error {
-	if _, err := fr.db.Exec("INSERT INTO forums (slug, admin, title) "+
-		"VALUES ($1, $2, $3)", forum.Slug, forum.AdminID, forum.Title); err != nil {
+func (repo *ForumRepository) InsertInto(forum *models.Forum) error {
+	if _, err := repo.database.Exec("INSERT INTO forums (slug, admin, title) VALUES ($1, $2, $3)",
+		forum.Slug, forum.AdminID, forum.Title); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (fr *ForumRepository) GetBySlug(slug string) (*models.Forum, error) {
-	returnForum := &models.Forum{}
-	if err := fr.db.QueryRow("SELECT f.id, f.slug, u.nickname, f.title, f.threads, f.posts "+
-		"FROM forums as f "+
-		"JOIN users as u ON (u.id = f.admin) "+
-		"WHERE lower(slug) = lower($1)", slug).Scan(&returnForum.ID, &returnForum.Slug, &returnForum.AdminNickname,
-		&returnForum.Title, &returnForum.ThreadsCount, &returnForum.PostsCount); err != nil {
+func (repo *ForumRepository) GetBySlug(slug string) (*models.Forum, error) {
+	forum := &models.Forum{}
+	if err := repo.database.QueryRow("SELECT f.id, f.slug, u.nickname, f.title, f.threads, f.posts FROM forums as f " +
+		"JOIN users as u ON (u.id = f.admin) WHERE lower(slug) = lower($1)",
+			slug).Scan(&forum.ID, &forum.Slug, &forum.AdminNickname,
+		&forum.Title, &forum.ThreadsCount, &forum.PostsCount); err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, tools.ErrDoesntExists
 		}
 		return nil, err
 	}
-
-	return returnForum, nil
+	return forum, nil
 }
