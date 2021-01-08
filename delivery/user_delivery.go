@@ -5,122 +5,105 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/naysudes/technopark-db-forum/models"
 	"github.com/naysudes/technopark-db-forum/tools"
-	"github.com/naysudes/technopark-db-forum/user"
+	"github.com/naysudes/technopark-db-forum/interfaces/user"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
-
 type UserHandler struct {
-	userUC user.Usecase
+	userUsecase user.Usecase
 }
 
-func NewUserHandler(e *echo.Echo, uuc user.Usecase) *UserHandler {
-	uh := &UserHandler{
-		userUC: uuc,
+func NewUserHandler(e *echo.Echo, userCase user.Usecase) UserHandler {
+	handler := UserHandler{
+		userUsecase: userCase,
 	}
-
-	e.POST("/api/user/:nickname/create", uh.CreateUser())
-	e.GET("/api/user/:nickname/profile", uh.GetProfile())
-	e.POST("/api/user/:nickname/profile", uh.UpdateProfile())
-
-	return uh
+	e.POST("/api/user/:nickname/create", handler.CreateUser())
+	e.GET("/api/user/:nickname/profile", handler.GetProfile())
+	e.POST("/api/user/:nickname/profile", handler.UpdateProfile())
+	return handler
 }
 
-func (uh *UserHandler) CreateUser() echo.HandlerFunc {
+func (handler UserHandler) CreateUser() echo.HandlerFunc {
 	type createUserRequset struct {
 		Email    string `json:"email" binding:"required" validate:"email"`
 		Fullname string `json:"fullname" binding:"required"`
 		About    string `json:"about"`
 	}
 
-	return func(c echo.Context) error {
+	return func(contex echo.Context) error {
 		req := &createUserRequset{}
-		if err := c.Bind(req); err != nil {
+		if err := contex.Bind(req); err != nil {
 			logrus.Error(fmt.Errorf("Binding error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{ Message: err.Error() })
 		}
-
-		if err := c.Validate(req); err != nil {
+		if err := contex.Validate(req); err != nil {
 			logrus.Error(fmt.Errorf("Validate error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{ Message: err.Error() })
 		}
-
-		nickname := c.Param("nickname")
-
-		u := &models.User{
+		nickname := contex.Param("nickname")
+		user := &models.User{
 			Email:    req.Email,
 			Fullname: req.Fullname,
 			About:    req.About,
 		}
-
-		returnUsers, err := uh.userUC.AddUser(nickname, u)
+		returnUsers, err := handler.userUsecase.Add(nickname, user)
 		if err != nil {
 			if err == tools.ErrUserExistWith {
-				return c.JSON(http.StatusConflict, returnUsers)
+				return contex.JSON(http.StatusConflict, returnUsers)
 			}
-
 			logrus.Error(fmt.Errorf("Request error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{
 				Message: err.Error(),
 			})
 		}
-
-		return c.JSON(http.StatusCreated, returnUsers[0])
+		return contex.JSON(http.StatusCreated, returnUsers[0])
 	}
 }
 
-func (uh *UserHandler) GetProfile() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		nickname := c.Param("nickname")
-
-		returnUser, err := uh.userUC.GetByNickname(nickname)
+func (handler UserHandler) GetProfile() echo.HandlerFunc {
+	return func(contex echo.Context) error {
+		nickname := contex.Param("nickname")
+		returnUser, err := handler.userUsecase.GetByNickname(nickname)
 		if err != nil && err != tools.ErrDoesntExists {
 			logrus.Error(fmt.Errorf("Request error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{ Message: err.Error() })
 		}
-
 		if err == tools.ErrDoesntExists {
-			return c.JSON(http.StatusNotFound, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusNotFound, tools.ErrorResponce{ Message: err.Error() })
 		}
-
-		return c.JSON(http.StatusOK, returnUser)
+		return contex.JSON(http.StatusOK, returnUser)
 	}
 }
 
-func (uh *UserHandler) UpdateProfile() echo.HandlerFunc {
+func (handler UserHandler) UpdateProfile() echo.HandlerFunc {
 	type updateUserRequset struct {
 		Email    string `json:"email" binding:"required"`
 		Fullname string `json:"fullname" binding:"required"`
 		About    string `json:"about"`
 	}
-
-	return func(c echo.Context) error {
+	return func(contex echo.Context) error {
 		req := &updateUserRequset{}
-		if err := c.Bind(req); err != nil {
+		if err := contex.Bind(req); err != nil {
 			logrus.Error(fmt.Errorf("Binding error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{ Message: err.Error() })
 		}
-
-		nickname := c.Param("nickname")
-
-		u := &models.User{
+		nickname := contex.Param("nickname")
+		user := &models.User{
 			Email:    req.Email,
 			Fullname: req.Fullname,
 			About:    req.About,
 		}
-
-		err := uh.userUC.Update(nickname, u)
+		err := handler.userUsecase.Update(nickname, user)
 		if err != nil {
 			if err == tools.ErrUserExistWith {
-				return c.JSON(http.StatusConflict, tools.ErrorResponce{err.Error()})
+				return contex.JSON(http.StatusConflict, tools.ErrorResponce{ Message: err.Error() })
 			}
 			if err == tools.ErrUserDoesntExists {
-				return c.JSON(http.StatusNotFound, tools.ErrorResponce{err.Error()})
+				return contex.JSON(http.StatusNotFound, tools.ErrorResponce{ Message: err.Error() })
 			}
 			logrus.Error(fmt.Errorf("Request error %s", err))
-			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{err.Error()})
+			return contex.JSON(http.StatusBadRequest, tools.ErrorResponce{ Message: err.Error() })
 		}
-
-		return c.JSON(http.StatusOK, u)
+		return contex.JSON(http.StatusOK, user)
 	}
 }

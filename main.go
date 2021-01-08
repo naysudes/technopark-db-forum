@@ -7,9 +7,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/naysudes/technopark-db-forum/database"
 	"github.com/sirupsen/logrus"
-	user_delivery "github.com/naysudes/technopark-db-forum/delivery"
-	user_repository "github.com/naysudes/technopark-db-forum/repository"
-	user_usecase "github.com/naysudes/technopark-db-forum/usecase"
+	delivery "github.com/naysudes/technopark-db-forum/delivery"
+	repository "github.com/naysudes/technopark-db-forum/repository"
+	usecase "github.com/naysudes/technopark-db-forum/usecase"
 )
 
 type CustomValidator struct {
@@ -41,12 +41,22 @@ func main() {
 		return
 	}
 
-	e := echo.New()
-	e.Validator = &CustomValidator{validator: validator.New()}
+	server := echo.New()
+	server.Validator = &CustomValidator{validator: validator.New()}
 
-	ur := user_repository.NewUserRepository(dbConn)
-	uUC := user_usecase.NewUserUsecase(ur)
-	_ = user_delivery.NewUserHandler(e, uUC)
+	ur := repository.NewUserRepository(dbConn)
+	thr := repository.NewThreadRepository(dbConn)
+	fr := repository.NewForumRepository(dbConn)
+	pr := repository.NewPostRepository(dbConn)
+	
+	uUC := usecase.NewUserUsecase(ur)
+	fUC := usecase.NewForumUsecase(fr, ur)
+	thUC := usecase.NewThreadUsecase(thr, ur, fr, pr)
 
-	e.Start(":5000")
+	_ = delivery.NewThreadDelivery(server, fUC, thUC)
+	_ = delivery.NewUserHandler(server, uUC)
+	_ = delivery.NewForumHandler(server, thUC, fUC)
+
+
+	server.Start(":5000")
 }

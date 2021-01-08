@@ -2,6 +2,7 @@ package user
 
 import "github.com/naysudes/technopark-db-forum/models"
 
+
 type Repository interface {
 	InsertInto(*models.User) error
 	GetByNickname(string) (*models.User, error)
