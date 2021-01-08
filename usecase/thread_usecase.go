@@ -119,3 +119,24 @@ func (tUC ThreadUsecase) CreateThread (thread *models.Thread) (*models.Thread, e
 	}
 	return thread, nil
 }
+
+func (usecase ThreadUsecase) GetPosts(slugOrId string, limit uint64, since uint64, sort string, descr bool) ([]*models.Post, error) {
+	thread := &models.Thread{}
+	id, err := strconv.ParseUint(slugOrId, 10, 64)
+	if err != nil {
+		thread, err = usecase.threadRepo.GetBySlug(slugOrId)
+	} else {
+		thread, err = usecase.threadRepo.GetByID(id)
+	}
+	if err != nil {
+		if err == tools.ErrDoesntExists {
+			return nil, tools.ErrThreadDoesntExists
+		}
+		return nil, err
+	}
+	postsByThread, err := usecase.postRepo.GetByThread(thread.ID, limit, since, sort, descr)
+	if err != nil {
+		return nil, err
+	}
+	return postsByThread, err
+}

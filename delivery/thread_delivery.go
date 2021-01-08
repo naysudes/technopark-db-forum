@@ -8,7 +8,7 @@ import (
 	// "github.com/naysudes/technopark-db-forum/interfaces/user"
 	"github.com/naysudes/technopark-db-forum/interfaces/thread"
 	"net/http"
-	// "strconv"
+	"strconv"
 	"encoding/json"
 )
 
@@ -22,7 +22,7 @@ func NewThreadDelivery(e *echo.Echo, forumUC forum.Usecase, threadUC thread.Usec
 	e.POST("/api/thread/:slug_or_id/create", handler.CreatePosts())
 	e.GET("/api/thread/:slug_or_id/details", handler.GetDetails())
 	// e.POST("/api/thread/:slug_or_id/details", handler.Update())
-	// e.GET("/api/thread/:slug_or_id/posts", handler.GetPosts())
+	e.GET("/api/thread/:slug_or_id/posts", handler.GetPosts())
 	// e.POST("/api/thread/:slug_or_id/vote", handler.Vote())
 	return handler
 }
@@ -89,8 +89,47 @@ func (th ThreadDelivery) Update() {
 
 }
 
-func (th ThreadDelivery) GetPosts() {
+func (handler ThreadDelivery) GetPosts() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		slugOrId := context.Param("slug_or_id")
+		limit := uint64(0)
+		var err error
+		if l := context.QueryParam("limit"); l != "" {
+			limit, err = strconv.ParseUint(l, 10, 64)
+			if err != nil {
+				return context.JSON(http.StatusBadRequest, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+		}
+		since := uint64(0)
+		if s := context.QueryParam("since"); s != "" {
+			since, err = strconv.ParseUint(s, 10, 64)
+			if err != nil {
+				return context.JSON(http.StatusBadRequest, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+		}
+		desc := false
+		if descVal := context.QueryParam("desc"); descVal == "true" {
+			desc = true
+		}
+		sort := context.QueryParam("sort")
+		threadsByForum, err := handler.threadUseCase.GetPosts(slugOrId, limit, since, sort, desc)
+		if err != nil {
+			if err == tools.ErrForumDoesntExists {
+				return context.JSON(http.StatusNotFound, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+			return context.JSON(http.StatusBadRequest, tools.ErrorResponce{
+				Message: err.Error(),
+			})
+		}
 
+		return context.JSON(http.StatusOK, threadsByForum)
+	}
 }
 
 func (th ThreadDelivery) Vote() {
