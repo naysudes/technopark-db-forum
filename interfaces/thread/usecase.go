@@ -5,8 +5,8 @@ import (
 )
 
 type Usecase interface {
-	// Create(*models.Thread) (*models.Thread, error)
-	CreatePosts(string, []models.Post) ([]models.Post, error)
+	CreateThread(*models.Thread) (*models.Thread, error)
+	CreatePosts(string, []*models.Post) ([]*models.Post, error)
 	GetBySlugOrID(string) (*models.Thread, error)
 	// GetPosts(string, uint64, uint64, string, bool) ([]*models.Post, error)
 	// Update(string, *models.Thread) (*models.Thread, error)

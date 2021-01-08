@@ -45,12 +45,18 @@ func main() {
 	server.Validator = &CustomValidator{validator: validator.New()}
 
 	ur := repository.NewUserRepository(dbConn)
-	uUC := usecase.NewUserUsecase(ur)
-	_ = delivery.NewUserHandler(server, uUC)
-
+	thr := repository.NewThreadRepository(dbConn)
 	fr := repository.NewForumRepository(dbConn)
+	pr := repository.NewPostRepository(dbConn)
+	
+	uUC := usecase.NewUserUsecase(ur)
 	fUC := usecase.NewForumUsecase(fr, ur)
-	_ = delivery.NewForumHandler(server, fUC)
+	thUC := usecase.NewThreadUsecase(thr, ur, fr, pr)
+
+	_ = delivery.NewThreadDelivery(server, fUC, thUC)
+	_ = delivery.NewUserHandler(server, uUC)
+	_ = delivery.NewForumHandler(server, thUC, fUC)
+
 
 	server.Start(":5000")
 }
