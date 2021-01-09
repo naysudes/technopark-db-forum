@@ -52,11 +52,12 @@ func main() {
 	uUC := usecase.NewUserUsecase(ur)
 	fUC := usecase.NewForumUsecase(fr, ur)
 	thUC := usecase.NewThreadUsecase(thr, ur, fr, pr)
+	pUC := usecase.NewPostUsecase(thr, ur, fr, pr)
 
 	_ = delivery.NewThreadDelivery(server, fUC, thUC)
 	_ = delivery.NewUserHandler(server, uUC)
 	_ = delivery.NewForumHandler(server, thUC, fUC)
-
+	_ = delivery.NewPostHandler(server, pUC)
 
 	server.Start(":5000")
 }

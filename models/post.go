@@ -17,9 +17,9 @@ type Post struct {
 	AuthorID     uint64    `json:"-"`
 }
 
-type PostFull struct {
+type PostDetailed struct {
 	Author   *User   `json:"author"`
 	Forum    *Forum  `json:"forum"`
-	PostData *Post   `json:"post"`
+	Post     *Post   `json:"post"`
 	Thread   *Thread `json:"thread"`
 }

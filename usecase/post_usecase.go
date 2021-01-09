@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	// "github.com/naysudes/technopark-db-forum/tools"
+	"github.com/naysudes/technopark-db-forum/tools"
 	"github.com/naysudes/technopark-db-forum/models"
 	"github.com/naysudes/technopark-db-forum/interfaces/forum"
 	"github.com/naysudes/technopark-db-forum/interfaces/thread"
@@ -24,10 +24,69 @@ func NewPostUsecase(tr thread.Repository, ur user.Repository, fr forum.Repositor
 		postRepo: pr,
 	}
 }
-func (pUC PostUsecase) GetDetails(uint64, []string) (*models.PostFull, error) {
-	return nil, nil
+func (usecase PostUsecase) GetDetails(id uint64, related []string) (*models.PostDetailed, error) {
+	post, err := usecase.postRepo.GetByID(id)
+	if err != nil {
+		if err == tools.ErrDoesntExists {
+			return nil, tools.ErrPostDoesntExists
+		}
+		return nil, err
+	}
+	postDetails := &models.PostDetailed{Post: post}
+
+	for _, rel := range related {
+		if (rel == "user") {
+			usr, err := usecase.userRepo.GetByNickname(post.Author)
+			if err != nil {
+				if err == tools.ErrDoesntExists {
+					return nil, tools.ErrUserDoesntExists
+				}
+				return nil, err
+			}
+			postDetails.Author = usr
+		}
+		if (rel == "thread") {
+			thead, err := usecase.threadRepo.GetByID(post.ThreadID)
+			if err != nil {
+				if err == tools.ErrDoesntExists {
+					return nil, tools.ErrThreadDoesntExists
+				}
+				return nil, err
+			}
+			postDetails.Thread = thead
+		}
+		if (rel == "forum") {
+			forum, err := usecase.forumRepo.GetBySlug(post.Forum)
+			if err != nil {
+				if err == tools.ErrDoesntExists {
+					return nil, tools.ErrForumDoesntExists
+				}
+				return nil, err
+			}
+			postDetails.Forum = forum
+		}
+	}
+	return postDetails, nil
+
 
 }
-func (pUC PostUsecase) Update(*models.Post) (*models.Post, error) {
-	return nil, nil
+func (usecase PostUsecase) Update(p *models.Post) (*models.Post, error) {
+	updPost, err := usecase.postRepo.GetByID(p.ID)
+	if err != nil {
+		if err == tools.ErrDoesntExists {
+			return nil, tools.ErrPostDoesntExists
+		}
+
+		return nil, err
+	}
+	if p.Message == "" || p.Message == updPost.Message {
+		return updPost, nil
+	}
+	updPost.Message = p.Message
+	updPost.IsEdited = true
+
+	if err = usecase.postRepo.Update(updPost); err != nil {
+		return nil, err
+	}
+	return updPost, nil
 }

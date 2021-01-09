@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx"
 	"github.com/naysudes/technopark-db-forum/models"
-	// "github.com/naysudes/technopark-db-forum/tools"
+	"github.com/naysudes/technopark-db-forum/tools"
 	"github.com/naysudes/technopark-db-forum/interfaces/post"
 )
 
@@ -183,12 +183,29 @@ func (repo PostRepository) GetByThread(id uint64, limit uint64, since uint64, so
 func (repo PostRepository) CheckParentPosts([]*models.Post, uint64) (bool, error) {
 	return true, nil
 }
-func (repo PostRepository) GetByID(uint64) (*models.Post, error) {
-	return nil, nil
+func (repo PostRepository) GetByID(id uint64) (*models.Post, error) {
+	post := &models.Post{}
+	if err := repo.db.QueryRow(
+		"SELECT p.id, u.nickname, f.slug, p.thread, p.message, p.created, p.isEdited, "+
+			"coalesce(path[array_length(path, 1) - 1], 0) FROM posts AS p "+
+			"JOIN users AS u ON (u.id = p.author) "+
+			"JOIN forums AS f ON (f.id = p.forum) WHERE p.id = $1", id).
+		Scan(&post.ID, &post.Author, &post.Forum, &post.ThreadID, &post.Message,
+			&post.CreationDate, &post.IsEdited, &post.ParentID); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, tools.ErrDoesntExists
+		}
+		return nil, err
+	}
+	return post, nil
 }
 func (repo PostRepository) GetCountByForumID(uint64) (uint64, error) {
 	return 1, nil
 }
-func (repo PostRepository) Update(*models.Post) error {
+func (repo PostRepository) Update(post *models.Post) error {
+	if _, err := repo.db.Exec("UPDATE posts SET message = $2, isEdited = TRUE "+
+		"WHERE id = $1", post.ID, post.Message); err != nil {
+		return err
+	}
 	return nil
 }

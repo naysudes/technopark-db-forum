@@ -35,9 +35,7 @@ func (ph PostHandler) GetPostDetails() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-
 		related := strings.Split(c.QueryParam("related"), ",")
-
 		returnPost, err := ph.postUsecase.GetDetails(id, related)
 		if err != nil {
 			if err == tools.ErrPostDoesntExists {
@@ -45,12 +43,10 @@ func (ph PostHandler) GetPostDetails() echo.HandlerFunc {
 					Message: err.Error(),
 				})
 			}
-
 			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
 				Message: err.Error(),
 			})
 		}
-
 		return c.JSON(http.StatusOK, returnPost)
 	}
 }
@@ -66,31 +62,27 @@ func (ph PostHandler) UpdatePost() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-
 		req := &updatePostReq{}
 		if err = c.Bind(req); err != nil {
 			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
 				Message: err.Error(),
 			})
 		}
-
 		p := &models.Post{
-			ID:      id,
+			ID: id,
 			Message: req.Message,
 		}
-		returnPost, err := ph.postUsecase.Update(p)
+		updPost, err := ph.postUsecase.Update(p)
 		if err != nil {
 			if err == tools.ErrPostDoesntExists {
 				return c.JSON(http.StatusNotFound, tools.ErrorResponce{
 					Message: err.Error(),
 				})
 			}
-
 			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
 				Message: err.Error(),
 			})
 		}
-
-		return c.JSON(http.StatusOK, returnPost)
+		return c.JSON(http.StatusOK, updPost)
 	}
 }
