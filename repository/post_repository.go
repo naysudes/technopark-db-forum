@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
 	"github.com/jackc/pgx"
 	"github.com/naysudes/technopark-db-forum/models"
 	"github.com/naysudes/technopark-db-forum/tools"
@@ -180,9 +181,7 @@ func (repo PostRepository) GetByThread(id uint64, limit uint64, since uint64, so
 	}
 	return postsByThread, nil
 }
-func (repo PostRepository) CheckParentPosts([]*models.Post, uint64) (bool, error) {
-	return true, nil
-}
+
 func (repo PostRepository) GetByID(id uint64) (*models.Post, error) {
 	post := &models.Post{}
 	if err := repo.db.QueryRow(
@@ -208,4 +207,31 @@ func (repo PostRepository) Update(post *models.Post) error {
 		return err
 	}
 	return nil
+}
+
+func (repo PostRepository) CheckParentPosts(posts []*models.Post, threadID uint64) (bool, error) {
+	parents := map[uint64]uint64{}
+	vals := []interface{}{threadID}
+	sqlRow := "SELECT count(*) FROM posts WHERE thread = $1 AND id in ("
+	i := 2
+	for _, p := range posts {
+		if p.ParentID > 0 {
+			sqlRow += "$" + strconv.Itoa(i) + ","
+			parents[p.ParentID] += 1
+			vals = append(vals, p.ParentID)
+			i++
+		}
+	}
+	if len(parents) == 0 {
+		return true, nil
+	}
+	sqlRow = sqlRow[0:len(sqlRow)-1] + ")"
+	var count int
+	if err := repo.db.QueryRow(sqlRow, vals...).Scan(&count); err != nil {
+		return false, err
+	}
+	if count != len(parents) {
+		return false, tools.ErrParentPostDoesntExists
+	}
+	return true, nil
 }

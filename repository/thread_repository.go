@@ -17,9 +17,9 @@ func NewThreadRepository(db *pgx.ConnPool) thread.Repository {
 	}
 }
 
-func (tr ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
+func (repo ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
 	t := &models.Thread{}
-	if err := tr.db.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
+	if err := repo.db.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
 		"coalesce (t.slug, ''), t.title, t.votes FROM threads AS t "+
 		"JOIN users AS u ON (t.author = u.id) "+
 		"JOIN forums AS f ON (f.id = t.forum) WHERE lower(t.slug) = lower($1)", slug).
@@ -33,9 +33,9 @@ func (tr ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
 	return t, nil
 }
 
-func (tr ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
+func (repo ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
 	t := &models.Thread{}
-	if err := tr.db.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
+	if err := repo.db.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
 		"coalesce (t.slug, ''), t.title, t.votes FROM threads AS t "+
 		"JOIN users AS u ON (t.author = u.id) "+
 		"JOIN forums AS f ON (f.id = t.forum) WHERE t.id = $1", id).
@@ -49,15 +49,23 @@ func (tr ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
 	return t, nil
 }
 
-func (tr ThreadRepository) GetByForumSlug(string, uint64, string, bool) ([]*models.Thread, error) {
+func (repo ThreadRepository) GetByForumSlug(string, uint64, string, bool) ([]*models.Thread, error) {
 	return nil, nil
 }
 
-func (tr ThreadRepository) InsertThread(t *models.Thread) error {
-	if err := tr.db.QueryRow("INSERT INTO threads (slug, author, title, message, forum, created) " +
+func (repo ThreadRepository) InsertThread(thread *models.Thread) error {
+	if err := repo.db.QueryRow("INSERT INTO threads (slug, author, title, message, forum, created) " +
 		"VALUES (NULLIF ($1, ''), $2, $3, $4, $5, $6) RETURNING id",
-		t.Slug, t.AuthorID, t.Title, t.About, t.ForumID, t.CreationDate).
-		Scan(&t.ID); err != nil {
+		thread.Slug, thread.AuthorID, thread.Title, thread.About, thread.ForumID, thread.CreationDate).
+		Scan(&thread.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo ThreadRepository) Update(thread *models.Thread) error {
+	if _, err := repo.db.Exec("UPDATE threads SET message = $2, title = $3 WHERE id = $1",
+		thread.ID, thread.About, thread.Title); err != nil {
 		return err
 	}
 	return nil

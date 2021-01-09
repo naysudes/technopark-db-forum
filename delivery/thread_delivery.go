@@ -21,7 +21,7 @@ func NewThreadDelivery(e *echo.Echo, forumUC forum.Usecase, threadUC thread.Usec
 	handler := ThreadDelivery{ forumUseCase:  forumUC, threadUseCase: threadUC }
 	e.POST("/api/thread/:slug_or_id/create", handler.CreatePosts())
 	e.GET("/api/thread/:slug_or_id/details", handler.GetDetails())
-	// e.POST("/api/thread/:slug_or_id/details", handler.Update())
+	e.POST("/api/thread/:slug_or_id/details", handler.Update())
 	e.GET("/api/thread/:slug_or_id/posts", handler.GetPosts())
 	// e.POST("/api/thread/:slug_or_id/vote", handler.Vote())
 	return handler
@@ -85,8 +85,40 @@ func (th ThreadDelivery) GetDetails() echo.HandlerFunc {
 	}
 }
 
-func (th ThreadDelivery) Update() {
+func (repo ThreadDelivery) Update() echo.HandlerFunc {
+	type updateThreadRequest struct {
+		Message string `json:"message" binding:"require"`
+		Title   string `json:"title" binding:"require"`
+	}
+	return func(c echo.Context) error {
+		req := &updateThreadRequest{}
+		if err := c.Bind(req); err != nil {
+			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
+				Message: err.Error(),
+			})
+		}
 
+		slugOrID := c.Param("slug_or_id")
+		reqThread := &models.Thread{
+			About: req.Message,
+			Title: req.Title,
+		}
+
+		returnThread, err := repo.threadUseCase.Update(slugOrID, reqThread)
+		if err != nil {
+			if err == tools.ErrThreadDoesntExists {
+				return c.JSON(http.StatusNotFound, tools.ErrorResponce{
+					Message: err.Error(),
+				})
+			}
+
+			return c.JSON(http.StatusBadRequest, tools.ErrorResponce{
+				Message: err.Error(),
+			})
+		}
+
+		return c.JSON(http.StatusOK, returnThread)
+	}
 }
 
 func (handler ThreadDelivery) GetPosts() echo.HandlerFunc {
@@ -118,7 +150,7 @@ func (handler ThreadDelivery) GetPosts() echo.HandlerFunc {
 		sort := context.QueryParam("sort")
 		threadsByForum, err := handler.threadUseCase.GetPosts(slugOrId, limit, since, sort, desc)
 		if err != nil {
-			if err == tools.ErrForumDoesntExists {
+			if err == tools.ErrThreadDoesntExists {
 				return context.JSON(http.StatusNotFound, tools.ErrorResponce{
 					Message: err.Error(),
 				})
@@ -127,7 +159,6 @@ func (handler ThreadDelivery) GetPosts() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-
 		return context.JSON(http.StatusOK, threadsByForum)
 	}
 }
