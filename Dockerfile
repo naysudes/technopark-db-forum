@@ -17,7 +17,7 @@ RUN apt -y update && apt install -y postgresql-$PGVER
 USER postgres
 
 RUN /etc/init.d/postgresql start &&\
-    psql --command "CREATE USER postgres WITH SUPERUSER PASSWORD 'qweqwe';" &&\
+    psql --command "CREATE USER forums_admin WITH SUPERUSER PASSWORD 'qweqwe';" &&\
     createdb -O postgres forum &&\
     /etc/init.d/postgresql stop
 

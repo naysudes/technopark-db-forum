@@ -24,7 +24,7 @@ func main() {
 			Host:     "localhost",
 			Port:     5432,
 			Database: "forum",
-			User:     "postgres",
+			User:     "forums_admin",
 			Password: "qweqwe",
 		},
 		MaxConnections: 10000,
