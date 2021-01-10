@@ -16,8 +16,8 @@ type ThreadDelivery struct {
 	threadUseCase thread.Usecase
 }
 
-func NewThreadDelivery(e *echo.Echo, forumUC forum.Usecase, threadUC thread.Usecase) ThreadDelivery {
-	handler := ThreadDelivery{ forumUseCase:  forumUC, threadUseCase: threadUC }
+func NewThreadDelivery(e *echo.Echo, forumUC forum.Usecase, threadUC thread.Usecase) *ThreadDelivery {
+	handler := &ThreadDelivery{ forumUseCase:  forumUC, threadUseCase: threadUC }
 	e.POST("/api/thread/:slug_or_id/create", handler.CreatePosts())
 	e.GET("/api/thread/:slug_or_id/details", handler.GetDetails())
 	e.POST("/api/thread/:slug_or_id/details", handler.Update())
@@ -26,7 +26,7 @@ func NewThreadDelivery(e *echo.Echo, forumUC forum.Usecase, threadUC thread.Usec
 	return handler
 }
 
-func (delivery ThreadDelivery) CreatePosts() echo.HandlerFunc {
+func (delivery *ThreadDelivery) CreatePosts() echo.HandlerFunc {
 	type createReq struct {
 		Author  string `json:"author" binding:"required"`
 		Message string `json:"message" binding:"required"`
@@ -66,7 +66,7 @@ func (delivery ThreadDelivery) CreatePosts() echo.HandlerFunc {
 	}
 }
 
-func (delivery ThreadDelivery) GetDetails() echo.HandlerFunc {
+func (delivery *ThreadDelivery) GetDetails() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		slugOrID := c.Param("slug_or_id")
 		threadBySlugorId, err := delivery.threadUseCase.GetBySlugOrID(slugOrID)
@@ -84,7 +84,7 @@ func (delivery ThreadDelivery) GetDetails() echo.HandlerFunc {
 	}
 }
 
-func (delivery ThreadDelivery) Update() echo.HandlerFunc {
+func (delivery *ThreadDelivery) Update() echo.HandlerFunc {
 	type updateThreadRequest struct {
 		Message string `json:"message" binding:"require"`
 		Title   string `json:"title" binding:"require"`
@@ -120,7 +120,7 @@ func (delivery ThreadDelivery) Update() echo.HandlerFunc {
 	}
 }
 
-func (delivery ThreadDelivery) GetPosts() echo.HandlerFunc {
+func (delivery *ThreadDelivery) GetPosts() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		slugOrId := context.Param("slug_or_id")
 		limit := uint64(0)
@@ -162,7 +162,7 @@ func (delivery ThreadDelivery) GetPosts() echo.HandlerFunc {
 	}
 }
 
-func (delivery ThreadDelivery) Vote() echo.HandlerFunc{
+func (delivery *ThreadDelivery) Vote() echo.HandlerFunc{
 		type voteReq struct {
 		Nickname string `json:"nickname" binding:"require"`
 		Voice    int64  `json:"voice" binding:"require"`

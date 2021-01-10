@@ -14,8 +14,8 @@ type PostDelivery struct {
 	postUsecase post.Usecase
 }
 
-func NewPostHandler(e *echo.Echo, postUsecase post.Usecase) PostDelivery {
-	ph := PostDelivery{
+func NewPostHandler(e *echo.Echo, postUsecase post.Usecase) *PostDelivery {
+	ph := &PostDelivery{
 		postUsecase: postUsecase,
 	}
 
@@ -25,7 +25,7 @@ func NewPostHandler(e *echo.Echo, postUsecase post.Usecase) PostDelivery {
 	return ph
 }
 
-func (delivery PostDelivery) GetPostDetails() echo.HandlerFunc {
+func (delivery *PostDelivery) GetPostDetails() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -49,7 +49,7 @@ func (delivery PostDelivery) GetPostDetails() echo.HandlerFunc {
 	}
 }
 
-func (delivery PostDelivery) UpdatePost() echo.HandlerFunc {
+func (delivery *PostDelivery) UpdatePost() echo.HandlerFunc {
 	type updatePostReq struct {
 		Message string `json:"message" binding:"require"`
 	}

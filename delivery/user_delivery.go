@@ -13,8 +13,8 @@ type UserDelivery struct {
 	userUsecase user.Usecase
 }
 
-func NewUserHandler(e *echo.Echo, userCase user.Usecase) UserDelivery {
-	handler := UserDelivery{
+func NewUserHandler(e *echo.Echo, userCase user.Usecase) *UserDelivery {
+	handler := &UserDelivery{
 		userUsecase: userCase,
 	}
 	e.POST("/api/user/:nickname/create", handler.CreateUser())
@@ -23,7 +23,7 @@ func NewUserHandler(e *echo.Echo, userCase user.Usecase) UserDelivery {
 	return handler
 }
 
-func (delivery UserDelivery) CreateUser() echo.HandlerFunc {
+func (delivery *UserDelivery) CreateUser() echo.HandlerFunc {
 	type createUserRequset struct {
 		Email    string `json:"email" binding:"required" validate:"email"`
 		Fullname string `json:"fullname" binding:"required"`
@@ -60,7 +60,7 @@ func (delivery UserDelivery) CreateUser() echo.HandlerFunc {
 	}
 }
 
-func (delivery UserDelivery) GetProfile() echo.HandlerFunc {
+func (delivery *UserDelivery) GetProfile() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		nickname := context.Param("nickname")
 		returnUser, err := delivery.userUsecase.GetByNickname(nickname)
@@ -75,7 +75,7 @@ func (delivery UserDelivery) GetProfile() echo.HandlerFunc {
 	}
 }
 
-func (delivery UserDelivery) UpdateProfile() echo.HandlerFunc {
+func (delivery *UserDelivery) UpdateProfile() echo.HandlerFunc {
 	type updateUserRequset struct {
 		Email    string `json:"email" binding:"required"`
 		Fullname string `json:"fullname" binding:"required"`

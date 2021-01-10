@@ -11,12 +11,12 @@ type VoteRepository struct {
 }
 
 func NewVoteRepository(database *pgx.ConnPool) vote.Repository {
-	return VoteRepository{
+	return &VoteRepository{
 		database: database,
 	}
 }
 
-func (repo VoteRepository) GetVotes(id uint64) (int64, error) {
+func (repo *VoteRepository) GetVotes(id uint64) (int64, error) {
 	var votes int64
 	if err := repo.database.QueryRow("SELECT votes "+
 		"FROM threads WHERE id = $1", id).Scan(&votes); err != nil {
@@ -25,7 +25,7 @@ func (repo VoteRepository) GetVotes(id uint64) (int64, error) {
 	return votes, nil
 }
 
-func (repo VoteRepository) Insert(vote *models.Vote) error {
+func (repo *VoteRepository) Insert(vote *models.Vote) error {
 	curentId := uint64(0)
 	err := repo.database.QueryRow("SELECT id FROM votes "+
 		"WHERE thread = $1 and author = $2", vote.ThreadID, vote.UserID).Scan(&curentId)

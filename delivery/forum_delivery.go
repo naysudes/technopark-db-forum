@@ -16,8 +16,8 @@ type ForumDelivery struct {
 	threadUseCase thread.Usecase
 }
 
-func NewForumHandler(e *echo.Echo, thUC thread.Usecase, fUC forum.Usecase) ForumDelivery {
-	handler := ForumDelivery{ forumUseCase:  fUC, threadUseCase: thUC}
+func NewForumHandler(e *echo.Echo, thUC thread.Usecase, fUC forum.Usecase) *ForumDelivery {
+	handler := &ForumDelivery{ forumUseCase:  fUC, threadUseCase: thUC}
 
 	e.POST("/api/forum/create", handler.CreateForum())
 	e.GET("/api/forum/:slug/details", handler.GetForumDetails())
@@ -28,7 +28,7 @@ func NewForumHandler(e *echo.Echo, thUC thread.Usecase, fUC forum.Usecase) Forum
 	return handler
 }
 
-func (delivery ForumDelivery) CreateForum() echo.HandlerFunc {
+func (delivery *ForumDelivery) CreateForum() echo.HandlerFunc {
 	type createForumRequest struct {
 		Slug  string `json:"slug" binding:"required"`
 		Title string `json:"title" binding:"required"`
@@ -67,7 +67,7 @@ func (delivery ForumDelivery) CreateForum() echo.HandlerFunc {
 	}
 }
 
-func (delivery ForumDelivery) GetForumDetails() echo.HandlerFunc {
+func (delivery *ForumDelivery) GetForumDetails() echo.HandlerFunc {
 	return func(contex echo.Context) error {
 		slug := contex.Param("slug")
 
@@ -86,7 +86,7 @@ func (delivery ForumDelivery) GetForumDetails() echo.HandlerFunc {
 	}
 }
 
-func (delivery ForumDelivery) GetUsers() echo.HandlerFunc {
+func (delivery *ForumDelivery) GetUsers() echo.HandlerFunc {
 	return func(contex echo.Context) error {
 		slug := contex.Param("slug")
 		limit := uint64(0)
@@ -120,7 +120,7 @@ func (delivery ForumDelivery) GetUsers() echo.HandlerFunc {
 	}
 }
 
-func (delivery ForumDelivery) CreateThread() echo.HandlerFunc {
+func (delivery *ForumDelivery) CreateThread() echo.HandlerFunc {
 		type CreateThreadRequest struct {
 		Author  string    `json:"author" binding:"require"`
 		Created time.Time `json:"created" binding:"omitempty"`
@@ -176,7 +176,7 @@ func (delivery ForumDelivery) CreateThread() echo.HandlerFunc {
 	}
 }
 
-func (delivery ForumDelivery) GetThreads() echo.HandlerFunc {
+func (delivery *ForumDelivery) GetThreads() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		slug := c.Param("slug")
 		limit := uint64(0)

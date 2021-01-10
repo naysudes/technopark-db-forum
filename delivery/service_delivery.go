@@ -11,8 +11,8 @@ type ServiceDelivery struct {
 	serviceUseCase service.Usecase
 }
 
-func NewServiceHandler(e *echo.Echo, usecase service.Usecase) ServiceDelivery {
-	sh := ServiceDelivery{
+func NewServiceHandler(e *echo.Echo, usecase service.Usecase) *ServiceDelivery {
+	sh := &ServiceDelivery{
 		serviceUseCase: usecase,
 	}
 	e.GET("/api/service/status", sh.GetStatus())
@@ -20,7 +20,7 @@ func NewServiceHandler(e *echo.Echo, usecase service.Usecase) ServiceDelivery {
 	return sh
 }
 
-func (delivery ServiceDelivery) GetStatus() echo.HandlerFunc {
+func (delivery *ServiceDelivery) GetStatus() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		stat, err := delivery.serviceUseCase.GetStatus()
 		if err != nil {
@@ -32,7 +32,7 @@ func (delivery ServiceDelivery) GetStatus() echo.HandlerFunc {
 	}
 }
 
-func (delivery ServiceDelivery) Clear() echo.HandlerFunc {
+func (delivery *ServiceDelivery) Clear() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		err := delivery.serviceUseCase.DeleteAll()
 		if err != nil {

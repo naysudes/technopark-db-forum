@@ -20,7 +20,7 @@ type ThreadUsecase struct {
 }
 
 func NewThreadUsecase(tr thread.Repository, ur user.Repository, fr forum.Repository, pr post.Repository, vr vote.Repository) thread.Usecase {
-	return ThreadUsecase {
+	return &ThreadUsecase {
 		forumRepo:  fr,
 		threadRepo: tr,
 		userRepo:   ur,
@@ -29,7 +29,7 @@ func NewThreadUsecase(tr thread.Repository, ur user.Repository, fr forum.Reposit
 	}
 }
 
-func (usecase ThreadUsecase) CreatePosts(slugOrID string, posts []*models.Post) ([]*models.Post, error) {
+func (usecase *ThreadUsecase) CreatePosts(slugOrID string, posts []*models.Post) ([]*models.Post, error) {
 	t := &models.Thread{}
 	id, err := strconv.ParseUint(slugOrID, 10, 64)
 	if err != nil {
@@ -70,7 +70,7 @@ func (usecase ThreadUsecase) CreatePosts(slugOrID string, posts []*models.Post) 
 	return posts, nil
 }
 
-func (usecase ThreadUsecase) GetBySlugOrID(slugOrID string) (*models.Thread, error) {
+func (usecase *ThreadUsecase) GetBySlugOrID(slugOrID string) (*models.Thread, error) {
 	t := &models.Thread{}
 
 	id, err := strconv.ParseUint(slugOrID, 10, 64)
@@ -90,7 +90,7 @@ func (usecase ThreadUsecase) GetBySlugOrID(slugOrID string) (*models.Thread, err
 	return t, nil
 }
 
-func (usecase ThreadUsecase) CreateThread(thread *models.Thread) (*models.Thread, error) {
+func (usecase *ThreadUsecase) CreateThread(thread *models.Thread) (*models.Thread, error) {
 	forum, err := usecase.forumRepo.GetBySlug(thread.Forum)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
@@ -123,7 +123,7 @@ func (usecase ThreadUsecase) CreateThread(thread *models.Thread) (*models.Thread
 	return thread, nil
 }
 
-func (usecase ThreadUsecase) GetPosts(slugOrId string, limit uint64, since uint64, sort string, descr bool) ([]*models.Post, error) {
+func (usecase *ThreadUsecase) GetPosts(slugOrId string, limit uint64, since uint64, sort string, descr bool) ([]*models.Post, error) {
 	thread := &models.Thread{}
 	id, err := strconv.ParseUint(slugOrId, 10, 64)
 	if err != nil {
@@ -144,7 +144,7 @@ func (usecase ThreadUsecase) GetPosts(slugOrId string, limit uint64, since uint6
 	return postsByThread, err
 }
 
-func (usecase ThreadUsecase) Update(slugOrID string, thread *models.Thread) (*models.Thread, error) {
+func (usecase *ThreadUsecase) Update(slugOrID string, thread *models.Thread) (*models.Thread, error) {
 		thread1 := &models.Thread{}
 
 	id, err := strconv.ParseUint(slugOrID, 10, 64)
@@ -176,7 +176,7 @@ func (usecase ThreadUsecase) Update(slugOrID string, thread *models.Thread) (*mo
 
 }
 
-func (usecase ThreadUsecase) Vote(slugOrId string, vote *models.Vote) (*models.Thread, error) {
+func (usecase *ThreadUsecase) Vote(slugOrId string, vote *models.Vote) (*models.Thread, error) {
 		thread := &models.Thread{}
 
 	id, err := strconv.ParseUint(slugOrId, 10, 64)

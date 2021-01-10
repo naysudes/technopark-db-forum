@@ -14,12 +14,12 @@ type PostRepository struct {
 }
 
 func NewPostRepository(db *pgx.ConnPool) post.Repository {
-	return  PostRepository{
+	return  &PostRepository{
 		db: db,
 	}
 }
 
-func (repo PostRepository) Insert(posts []*models.Post) error {
+func (repo *PostRepository) Insert(posts []*models.Post) error {
 		queryRow := "INSERT INTO posts (author, forum, message, parent, thread) VALUES "
 	for _, p := range posts {
 		queryRow += fmt.Sprintf("(%d, %d, '%s', %d, %d),",
@@ -52,7 +52,7 @@ func (repo PostRepository) Insert(posts []*models.Post) error {
 	return tx.Commit()
 }
 
-func (repo PostRepository) GetByThread(id uint64, limit uint64, since uint64, sort string, desc bool) ([]*models.Post, error) {
+func (repo *PostRepository) GetByThread(id uint64, limit uint64, since uint64, sort string, desc bool) ([]*models.Post, error) {
 	queryStr := "SELECT p.id, u.nickname, f.slug, p.thread, p.created, p.message, p.isEdited, " +
 		"coalesce(p.path[array_length(p.path, 1) - 1], 0) " +
 		"FROM posts AS p " +
@@ -182,7 +182,7 @@ func (repo PostRepository) GetByThread(id uint64, limit uint64, since uint64, so
 	return postsByThread, nil
 }
 
-func (repo PostRepository) GetByID(id uint64) (*models.Post, error) {
+func (repo *PostRepository) GetByID(id uint64) (*models.Post, error) {
 	post := &models.Post{}
 	if err := repo.db.QueryRow(
 		"SELECT p.id, u.nickname, f.slug, p.thread, p.message, p.created, p.isEdited, "+
@@ -198,10 +198,10 @@ func (repo PostRepository) GetByID(id uint64) (*models.Post, error) {
 	}
 	return post, nil
 }
-func (repo PostRepository) GetCountByForumID(uint64) (uint64, error) {
+func (repo *PostRepository) GetCountByForumID(uint64) (uint64, error) {
 	return 1, nil
 }
-func (repo PostRepository) Update(post *models.Post) error {
+func (repo *PostRepository) Update(post *models.Post) error {
 	if _, err := repo.db.Exec("UPDATE posts SET message = $2, isEdited = TRUE "+
 		"WHERE id = $1", post.ID, post.Message); err != nil {
 		return err
@@ -209,7 +209,7 @@ func (repo PostRepository) Update(post *models.Post) error {
 	return nil
 }
 
-func (repo PostRepository) CheckParentPosts(posts []*models.Post, threadID uint64) (bool, error) {
+func (repo *PostRepository) CheckParentPosts(posts []*models.Post, threadID uint64) (bool, error) {
 	parents := map[uint64]uint64{}
 	vals := []interface{}{threadID}
 	sqlRow := "SELECT count(*) FROM posts WHERE thread = $1 AND id in ("
