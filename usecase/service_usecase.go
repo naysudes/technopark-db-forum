@@ -15,7 +15,7 @@ func NewServiceUsecase(sr service.Repository) service.Usecase {
 	}
 }
 
-func (usecase ServiceUsecase) GetStatus() (*models.Status, error) {
+func (usecase *ServiceUsecase) GetStatus() (*models.Status, error) {
 	forum, err := usecase.serviceRepo.GetForumCount()
 	post, err := usecase.serviceRepo.GetPostCount()
 	thread, err := usecase.serviceRepo.GetThreadCount()
@@ -32,7 +32,7 @@ func (usecase ServiceUsecase) GetStatus() (*models.Status, error) {
 	return status, nil
 }
 
-func (usecase ServiceUsecase) DeleteAll() error {
+func (usecase *ServiceUsecase) DeleteAll() error {
 	err := usecase.serviceRepo.DeleteVotes()
 	if err != nil {
 		return err

@@ -14,10 +14,10 @@ type UserRepository struct {
 }
 
 func NewUserRepository(database *pgx.ConnPool) user.Repository {
-	return UserRepository{ database: database }
+	return &UserRepository{ database: database }
 }
 
-func (repo UserRepository) Insert(usr *models.User) error {
+func (repo *UserRepository) Insert(usr *models.User) error {
 	if _, err := repo.database.Exec("INSERT INTO users (nickname, email, fullname, about) VALUES ($1, $2, $3, $4)",
 	usr.Nickname, usr.Email, usr.Fullname, usr.About); err != nil {
 		return err
@@ -25,7 +25,7 @@ func (repo UserRepository) Insert(usr *models.User) error {
 	return nil
 }
 
-func (repo UserRepository) GetUsersByForum(
+func (repo *UserRepository) GetUsersByForum(
 	id uint64, limit uint64, since string, desc bool) ([]*models.User, error) {
 	usrs := []*models.User{}
 	queryString := "SELECT u.nickname, u.email, u.fullname, u.about FROM forums_users fu " +
@@ -65,7 +65,7 @@ func (repo UserRepository) GetUsersByForum(
 	return usrs, nil
 }
 
-func (repo UserRepository) GetByNickname(nickname string) (*models.User, error) {
+func (repo *UserRepository) GetByNickname(nickname string) (*models.User, error) {
 	usr := &models.User{}
 	if err := repo.database.QueryRow("SELECT id, nickname, email, fullname, about FROM users " +
 		"WHERE lower(nickname) = lower($1)", nickname).Scan(&usr.ID, &usr.Nickname, &usr.Email, &usr.Fullname,
@@ -78,7 +78,7 @@ func (repo UserRepository) GetByNickname(nickname string) (*models.User, error) 
 	return usr, nil
 }
 
-func (repo UserRepository) Update(usr *models.User) error {
+func (repo *UserRepository) Update(usr *models.User) error {
 	if _, err := repo.database.Exec("UPDATE users SET email = $2, fullname = $3, about = $4 WHERE lower(nickname) = lower($1)",
 		usr.Nickname, usr.Email, usr.Fullname, usr.About); err != nil {
 		return err
@@ -86,7 +86,7 @@ func (repo UserRepository) Update(usr *models.User) error {
 	return nil
 }
 
-func (repo UserRepository) GetByEmail(email string) (*models.User, error) {
+func (repo *UserRepository) GetByEmail(email string) (*models.User, error) {
 	usr := &models.User{}
 	if err := repo.database.QueryRow("SELECT id, nickname, email, fullname, about FROM users WHERE lower(email) = lower($1)",
 		email).Scan(&usr.ID, &usr.Nickname, &usr.Email, &usr.Fullname, &usr.About); err != nil {
@@ -98,7 +98,7 @@ func (repo UserRepository) GetByEmail(email string) (*models.User, error) {
 	return usr, nil
 }
 
-func (repo UserRepository) CheckNicknames(posts []*models.Post) (bool, error) {
+func (repo *UserRepository) CheckNicknames(posts []*models.Post) (bool, error) {
 	rows, err := repo.database.Query("SELECT id, lower(nickname) FROM users")
 	if err != nil {
 		return false, err

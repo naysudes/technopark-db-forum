@@ -13,12 +13,12 @@ type ThreadRepository struct {
 }
 
 func NewThreadRepository(database *pgx.ConnPool) thread.Repository {
-	return ThreadRepository{
+	return &ThreadRepository{
 		database: database,
 	}
 }
 
-func (repo ThreadRepository) Insert(t *models.Thread) error {
+func (repo *ThreadRepository) Insert(t *models.Thread) error {
 	if err := repo.database.QueryRow("INSERT INTO threads "+
 		"(slug, author, title, message, forum, created) "+
 		"VALUES (NULLIF ($1, ''), $2, $3, $4, $5, $6) RETURNING id",
@@ -30,7 +30,7 @@ func (repo ThreadRepository) Insert(t *models.Thread) error {
 	return nil
 }
 
-func (repo ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
+func (repo *ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
 	thread := &models.Thread{}
 	if err := repo.database.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
 		"coalesce (t.slug, ''), t.title, t.votes FROM threads AS t "+
@@ -46,7 +46,7 @@ func (repo ThreadRepository) GetByID(id uint64) (*models.Thread, error) {
 	return thread, nil
 }
 
-func (repo ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
+func (repo *ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
 	thread := &models.Thread{}
 	if err := repo.database.QueryRow("SELECT t.id, u.nickname, t.created, t.forum, f.slug, t.message, "+
 		"coalesce (t.slug, ''), t.title, t.votes FROM threads AS t "+
@@ -62,7 +62,7 @@ func (repo ThreadRepository) GetBySlug(slug string) (*models.Thread, error) {
 	return thread, nil
 }
 
-func (repo ThreadRepository) GetByForumSlug(
+func (repo *ThreadRepository) GetByForumSlug(
 	slug string, limit uint64, since string, desc bool) ([]*models.Thread, error) {
 	threadsByForum := []*models.Thread{}
 	queryStr := "SELECT t.id, u.nickname, t.created, f.slug, t.message, " +
@@ -105,7 +105,7 @@ func (repo ThreadRepository) GetByForumSlug(
 	return threadsByForum, nil
 }
 
-func (repo ThreadRepository) GetCountByForumID(id uint64) (uint64, error) {
+func (repo *ThreadRepository) GetCountByForumID(id uint64) (uint64, error) {
 	var count uint64
 	if err := repo.database.QueryRow("SELECT count(*) FROM threads WHERE forum = $1 ", id).
 		Scan(&count); err != nil {
@@ -114,7 +114,7 @@ func (repo ThreadRepository) GetCountByForumID(id uint64) (uint64, error) {
 	return count, nil
 }
 
-func (repo ThreadRepository) Update(thread *models.Thread) error {
+func (repo *ThreadRepository) Update(thread *models.Thread) error {
 	if _, err := repo.database.Exec("UPDATE threads SET message = $2, title = $3 WHERE id = $1",
 		thread.ID, thread.About, thread.Title); err != nil {
 		return err

@@ -17,14 +17,14 @@ type PostUsecase struct {
 }
 
 func NewPostUsecase(tr thread.Repository, ur user.Repository, fr forum.Repository, pr post.Repository) post.Usecase {
-	return PostUsecase {
+	return &PostUsecase {
 		forumRepo:  fr,
 		threadRepo: tr,
 		userRepo:   ur,
 		postRepo: pr,
 	}
 }
-func (usecase PostUsecase) GetDetails(id uint64, related []string) (*models.PostDetailed, error) {
+func (usecase *PostUsecase) GetDetails(id uint64, related []string) (*models.PostDetailed, error) {
 	post, err := usecase.postRepo.GetByID(id)
 	if err != nil {
 		if err == tools.ErrDoesntExists {
@@ -70,7 +70,7 @@ func (usecase PostUsecase) GetDetails(id uint64, related []string) (*models.Post
 
 
 }
-func (usecase PostUsecase) Update(post *models.Post) (*models.Post, error) {
+func (usecase *PostUsecase) Update(post *models.Post) (*models.Post, error) {
 	updated, err := usecase.postRepo.GetByID(post.ID)
 	if err != nil {
 		if err == tools.ErrDoesntExists {

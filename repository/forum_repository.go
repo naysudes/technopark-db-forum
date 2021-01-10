@@ -12,12 +12,12 @@ type ForumRepository struct {
 }
 
 func NewForumRepository(database *pgx.ConnPool) forum.Repository {
-	return ForumRepository{
+	return &ForumRepository{
 		database: database,
 	}
 }
 
-func (repo ForumRepository) Insert(forum *models.Forum) error {
+func (repo *ForumRepository) Insert(forum *models.Forum) error {
 	if _, err := repo.database.Exec("INSERT INTO forums (slug, admin, title) VALUES ($1, $2, $3)",
 		forum.Slug, forum.AdminID, forum.Title); err != nil {
 		return err
@@ -25,7 +25,7 @@ func (repo ForumRepository) Insert(forum *models.Forum) error {
 	return nil
 }
 
-func (repo ForumRepository) GetBySlug(slug string) (*models.Forum, error) {
+func (repo *ForumRepository) GetBySlug(slug string) (*models.Forum, error) {
 	forum := &models.Forum{}
 	if err := repo.database.QueryRow("SELECT f.id, f.slug, u.nickname, f.title, f.threads, f.posts FROM forums as f " +
 		"JOIN users as u ON (u.id = f.admin) WHERE lower(slug) = lower($1)",

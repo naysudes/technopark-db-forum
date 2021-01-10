@@ -165,9 +165,12 @@ CREATE INDEX idx_posts_threads_created ON posts (thread, created);
 CREATE INDEX idx_posts_threads_path ON posts (thread, path);
 CREATE INDEX idx_posts_threads_array ON posts (thread, (array_length(path, 1)));
 CREATE INDEX idx_posts_forum ON posts (forum);
-CREATE INDEX idx_votes_users ON votes (author);
+CREATE INDEX idx_votes_uesrs ON votes (author);
 CREATE INDEX idx_votes_thread ON votes (thread);
 CREATE INDEX idx_users_of_forums ON forums_users (forum_id, user_id);
+
 CREATE INDEX idx_forums_slug ON forums (lower(slug));
 CREATE INDEX idx_threads_slug ON threads (lower(slug));
 CREATE INDEX idx_user_nikcname ON users (lower(nickname));
+CREATE INDEX idx_posts_path_1 ON posts ((path[1]));
+CREATE INDEX idx_votes_thread_username ON votes (thread, author);
